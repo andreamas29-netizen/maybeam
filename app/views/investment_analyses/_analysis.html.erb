@@ -1,0 +1,71 @@
+<%# locals: (analysis:) %>
+
+<%= turbo_stream_from analysis if analysis.in_progress? %>
+
+<div class="space-y-4">
+  <div class="flex items-center justify-between text-sm text-secondary">
+    <span>
+      <%= format_date(analysis.created_at.to_date, :long) %>
+      <%= "· weekly run" if analysis.triggered_scheduled? %>
+    </span>
+    <% if analysis.completed? && analysis.model.present? %>
+      <span>Model: <%= analysis.model %></span>
+    <% end %>
+  </div>
+
+  <% if analysis.in_progress? %>
+    <div class="bg-container rounded-xl shadow-border-xs p-8 text-center space-y-2">
+      <%= icon "loader-circle", class: "animate-spin mx-auto" %>
+      <p class="text-primary font-medium">The agents are researching your holdings</p>
+      <p class="text-sm text-secondary">
+        The short, medium and long term analysts search the web in parallel, then a strategist combines their work.
+        This usually takes a few minutes. The page updates on its own when it's done.
+      </p>
+    </div>
+  <% elsif analysis.failed? %>
+    <%= render DS::Alert.new(message: "The analysis failed: #{analysis.error}", variant: :error) %>
+  <% elsif !analysis.completed? %>
+    <%= render DS::Alert.new(message: "This analysis did not finish. Run a new one to try again.", variant: :warning) %>
+  <% else %>
+    <% if analysis.summary.present? %>
+      <div class="bg-container rounded-xl shadow-border-xs p-5">
+        <h2 class="font-medium text-lg text-primary mb-2">Summary</h2>
+        <div class="prose prose--ai-chat"><%= markdown(analysis.summary) %></div>
+      </div>
+    <% end %>
+
+    <% analysis.recommendations.each do |recommendation| %>
+      <%= render "investment_analyses/recommendation",
+                 recommendation: recommendation,
+                 holding: analysis.portfolio.find { |h| h["ticker"] == recommendation["ticker"] } %>
+    <% end %>
+
+    <div class="bg-container rounded-xl shadow-border-xs p-5 space-y-3">
+      <h2 class="font-medium text-lg text-primary">Analyst research</h2>
+      <% InvestmentAnalysis::Agent::HORIZONS.each do |horizon, config| %>
+        <% report = analysis.agent_report(horizon) %>
+        <% next if report["report"].blank? %>
+
+        <details class="group bg-surface-inset rounded-lg p-3">
+          <summary class="cursor-pointer text-sm font-medium text-primary flex items-center justify-between">
+            <%= config[:label] %> analyst (<%= config[:window] %>)
+            <%= icon "chevron-down", class: "group-open:rotate-180 transition-transform" %>
+          </summary>
+
+          <div class="prose prose--ai-chat mt-3"><%= markdown(report["report"]) %></div>
+
+          <% if report["sources"].present? %>
+            <div class="mt-3 space-y-1">
+              <p class="text-xs font-medium text-secondary uppercase">Sources</p>
+              <ul class="text-xs space-y-0.5">
+                <% report["sources"].each do |source| %>
+                  <li><%= link_to source["title"].presence || source["url"], source["url"], target: "_blank", rel: "noopener noreferrer", class: "text-secondary hover:underline" %></li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+        </details>
+      <% end %>
+    </div>
+  <% end %>
+</div>

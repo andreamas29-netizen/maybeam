@@ -88,6 +88,10 @@ GEM
     after_commit_everywhere (1.6.0)
       activerecord (>= 4.2)
       activesupport
+    anthropic (1.78.0)
+      base64 (~> 0.1)
+      connection_pool (>= 2, < 4)
+      standardwebhooks (~> 1.0)
     ast (2.4.3)
     aws-eventstream (1.4.0)
     aws-partitions (1.1113.0)
@@ -553,6 +557,7 @@ GEM
     smart_properties (1.17.0)
     sorbet-runtime (0.5.12163)
     stackprof (0.2.27)
+    standardwebhooks (1.1.0)
     stimulus-rails (1.3.4)
       railties (>= 6.0.0)
     stringio (3.1.7)
@@ -622,6 +627,7 @@ DEPENDENCIES
   aasm
   activerecord-import
   after_commit_everywhere (~> 1.0)
+  anthropic
   aws-sdk-s3 (~> 1.177.0)
   bcrypt (~> 3.1)
   benchmark-ips

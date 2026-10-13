@@ -1,0 +1,9 @@
+completed:
+  family: dylan_family
+  status: completed
+  model: claude-opus-5-5
+  completed_at: <%= 1.day.ago %>
+  portfolio: <%= [ { ticker: "AAPL", name: "Apple", market_value: 2150, currency: "USD", portfolio_weight_pct: 100, unrealized_return_pct: 5.2 } ].to_json %>
+  agent_reports: <%= { short_term: { report: "Earnings next week.", sources: [ { title: "Apple IR", url: "https://investor.apple.com" } ] } }.to_json %>
+  summary: A concentrated portfolio.
+  recommendations: <%= [ { ticker: "AAPL", name: "Apple", short_term: { action: "hold", rationale: "Wait for earnings." }, medium_term: { action: "hold", rationale: "Fair value." }, long_term: { action: "trim", rationale: "Too concentrated." }, conviction: "medium", key_risks: "Regulation." } ].to_json %>
