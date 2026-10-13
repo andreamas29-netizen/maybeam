@@ -1,0 +1,73 @@
+# Render Blueprint: one-click deploy of Beam with the cheapest plans that keep your data.
+# Approximate monthly cost: web $7 + worker $7 + Postgres $6 + Key Value (Redis) free = about $20.
+services:
+  - type: web
+    name: beam
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /up
+    envVars:
+      - fromGroup: beam-settings
+      - key: ANTHROPIC_API_KEY
+        sync: false # Render asks for this when you deploy
+      - key: DB_HOST
+        fromDatabase: { name: beam-db, property: host }
+      - key: DB_PORT
+        fromDatabase: { name: beam-db, property: port }
+      - key: POSTGRES_DB
+        fromDatabase: { name: beam-db, property: database }
+      - key: POSTGRES_USER
+        fromDatabase: { name: beam-db, property: user }
+      - key: POSTGRES_PASSWORD
+        fromDatabase: { name: beam-db, property: password }
+      - key: REDIS_URL
+        fromService: { type: keyvalue, name: beam-redis, property: connectionString }
+
+  # Runs background jobs: account syncs, imports and the AI investment analysis
+  - type: worker
+    name: beam-worker
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerCommand: bundle exec sidekiq
+    envVars:
+      - fromGroup: beam-settings
+      - key: ANTHROPIC_API_KEY
+        sync: false # paste the same key as for the web service
+      - key: DB_HOST
+        fromDatabase: { name: beam-db, property: host }
+      - key: DB_PORT
+        fromDatabase: { name: beam-db, property: port }
+      - key: POSTGRES_DB
+        fromDatabase: { name: beam-db, property: database }
+      - key: POSTGRES_USER
+        fromDatabase: { name: beam-db, property: user }
+      - key: POSTGRES_PASSWORD
+        fromDatabase: { name: beam-db, property: password }
+      - key: REDIS_URL
+        fromService: { type: keyvalue, name: beam-redis, property: connectionString }
+
+  # Job queue only, so the free plan (no persistence) is fine
+  - type: keyvalue
+    name: beam-redis
+    plan: free
+    maxmemoryPolicy: noeviction
+    ipAllowList: [] # only reachable from your Render services
+
+databases:
+  - name: beam-db
+    plan: basic-256mb
+    databaseName: beam
+    user: beam
+    ipAllowList: [] # only reachable from your Render services
+
+envVarGroups:
+  - name: beam-settings
+    envVars:
+      - key: SELF_HOSTED
+        value: "true"
+      - key: SECRET_KEY_BASE
+        generateValue: true
+      - key: RAILS_MAX_THREADS
+        value: "3"

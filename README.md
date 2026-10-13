@@ -28,7 +28,17 @@ Insights are informational and educational. They are not licensed or personalize
 
 ## Hosting
 
-Beam can be [self hosted with Docker](docs/hosting/docker.md).
+### Render (one click)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/andreamas29-netizen/maybeam)
+
+The [Render Blueprint](render.yaml) creates the web app, a background worker, a Postgres database and a
+Redis (Key Value) instance, for about $20 a month in total. Render asks for your `ANTHROPIC_API_KEY` during
+the deploy. When it finishes, open the app's URL and create your account.
+
+### Docker
+
+Beam can also be [self hosted with Docker](docs/hosting/docker.md).
 
 ## Local Development Setup
 
