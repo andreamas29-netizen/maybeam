@@ -1,4 +1,6 @@
 class InvestmentAnalysesController < ApplicationController
+  before_action { @breadcrumbs = [ [ "Home", root_path ], [ "Insights", nil ] ] }
+
   def index
     @analyses = Current.family.investment_analyses.ordered.limit(10)
     @analysis = @analyses.first
