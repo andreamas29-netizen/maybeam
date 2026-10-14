@@ -18,10 +18,12 @@ class InvestmentAnalysis::Portfolio
       {
         "ticker" => security.ticker,
         "name" => security.name.presence || security.ticker,
+        "isin" => isin?(security.ticker) ? security.ticker : nil,
         "exchange_mic" => security.exchange_operating_mic,
         "country_code" => security.country_code,
         "quantity" => qty.to_f,
         "price" => holdings.first.price.to_f,
+        "price_date" => holdings.first.date.iso8601,
         "currency" => holdings.first.currency,
         "market_value" => market_value.to_f.round(2),
         "portfolio_weight_pct" => total_value.zero? ? 0 : (value / total_value * 100).to_f.round(2),
@@ -32,13 +34,38 @@ class InvestmentAnalysis::Portfolio
     end.sort_by { |h| -h["portfolio_weight_pct"] }
   end
 
+  # Uninvested cash sitting in the investment accounts, in the family currency
+  def cash_balance
+    investment_accounts.sum do |account|
+      Money.new(account.cash_balance || 0, account.currency).exchange_to(family.currency, fallback_rate: 1).amount
+    end.to_f.round(2)
+  end
+
+  # What the agents should know about the investor beyond their holdings
+  def investor_profile
+    {
+      "base_currency" => family.currency,
+      "uninvested_cash" => cash_balance,
+      "risk_profile" => Family::INVESTOR_RISK_PROFILES[family.investor_risk_profile],
+      "goals_and_notes" => family.investor_notes.presence
+    }.compact
+  end
+
   private
     attr_reader :family
 
+    ISIN_FORMAT = /\A[A-Z]{2}[A-Z0-9]{9}\d\z/
+
+    def isin?(value)
+      ISIN_FORMAT.match?(value.to_s)
+    end
+
+    def investment_accounts
+      family.accounts.visible.where(accountable_type: "Investment")
+    end
+
     def current_holdings
-      family.accounts
-        .visible
-        .where(accountable_type: "Investment")
+      investment_accounts
         .includes(:accountable)
         .flat_map { |account| account.current_holdings.includes(:security, :account).to_a }
     end

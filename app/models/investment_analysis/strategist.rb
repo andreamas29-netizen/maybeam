@@ -1,9 +1,10 @@
 # Combines the horizon agents' research into one structured recommendation per holding
 class InvestmentAnalysis::Strategist
-  def initialize(portfolio:, agent_reports:, provider:)
+  def initialize(portfolio:, agent_reports:, provider:, investor: {})
     @portfolio = portfolio
     @agent_reports = agent_reports
     @provider = provider
+    @investor = investor
   end
 
   def recommend
@@ -14,7 +15,7 @@ class InvestmentAnalysis::Strategist
   end
 
   private
-    attr_reader :portfolio, :agent_reports, :provider
+    attr_reader :portfolio, :agent_reports, :provider, :investor
 
     def instructions
       <<~PROMPT
@@ -27,6 +28,9 @@ class InvestmentAnalysis::Strategist
         - hold: keep the position as it is
         - trim: reduce the position, for example to lower concentration or lock in gains
         - sell: exit the position
+
+        Act like a personal advisor who knows this investor: fit every action to their risk profile, goals and
+        notes when they are given, and say how to use any uninvested cash.
 
         Base each action on the matching analyst's research and the investor's actual position. Horizons can
         disagree; that is expected and useful. Keep each rationale to two or three plain sentences that a
@@ -46,6 +50,10 @@ class InvestmentAnalysis::Strategist
       end
 
       <<~PROMPT
+        Investor profile, as JSON:
+
+        #{JSON.pretty_generate(investor)}
+
         Holdings, as JSON:
 
         #{JSON.pretty_generate(portfolio)}

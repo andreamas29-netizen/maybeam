@@ -1,0 +1,34 @@
+<%# locals: (family:) %>
+
+<details class="group bg-container rounded-xl shadow-border-xs p-4" <%= "open" if family.investor_risk_profile.blank? && family.investor_notes.blank? %>>
+  <summary class="flex items-center justify-between gap-4 cursor-pointer list-none">
+    <div>
+      <p class="text-sm font-medium text-primary">Your investor profile</p>
+      <p class="text-sm text-secondary">
+        <% if family.investor_risk_profile.present? %>
+          <%= family.investor_risk_profile.humanize %> risk profile. The agents tailor their advice to it.
+        <% else %>
+          Tell the agents about your goals and risk tolerance so their advice fits you.
+        <% end %>
+      </p>
+    </div>
+    <span class="text-secondary group-open:rotate-180 transition-transform">
+      <%= icon("chevron-down") %>
+    </span>
+  </summary>
+
+  <%= styled_form_with model: family, url: investor_profile_path, method: :patch, class: "space-y-3 mt-4" do |form| %>
+    <%= form.select :investor_risk_profile,
+          Family::INVESTOR_RISK_PROFILES.map { |key, description| [ description, key ] },
+          { label: "Risk tolerance", include_blank: "Not set" } %>
+
+    <%= form.text_area :investor_notes,
+          label: "Goals and context",
+          rows: 4,
+          placeholder: "For example: I'm 30 and investing for retirement and a house deposit in about 5 years. I put 300 EUR a month into an MSCI World savings plan. I don't want to hold more than 10% in any single stock." %>
+
+    <p class="text-xs text-secondary">Don't include passwords, PINs or account numbers. This text is sent to the AI agents with each analysis.</p>
+
+    <%= form.submit "Save profile" %>
+  <% end %>
+</details>

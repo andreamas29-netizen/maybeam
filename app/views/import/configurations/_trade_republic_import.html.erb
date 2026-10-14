@@ -1,0 +1,13 @@
+<%# locals: (import:) %>
+
+<div class="flex items-center justify-between border border-secondary rounded-lg bg-green-500/5 p-5 gap-4 mb-4">
+  <span class="text-green-500">
+    <%= icon("check-circle", color: "current") %>
+  </span>
+  <p class="text-sm text-primary italic">Trade Republic exports have a fixed layout, so there is nothing to configure. Trades become holdings in your investment account, and deposits, withdrawals, dividends, interest and card payments become cash transactions.</p>
+</div>
+
+<%= styled_form_with model: @import, url: import_configuration_path(@import), scope: :import, method: :patch, class: "space-y-4" do |form| %>
+  <%= form.hidden_field :date_format %>
+  <%= form.submit "Continue", disabled: import.complete? %>
+<% end %>

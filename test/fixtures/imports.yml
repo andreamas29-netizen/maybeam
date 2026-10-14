@@ -12,3 +12,8 @@ account:
   family: dylan_family
   type: AccountImport
   status: pending
+
+trade_republic:
+  family: dylan_family
+  type: TradeRepublicImport
+  status: pending
