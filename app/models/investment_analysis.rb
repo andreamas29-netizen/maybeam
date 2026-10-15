@@ -43,15 +43,17 @@ class InvestmentAnalysis < ApplicationRecord
     provider = self.class.provider
     raise Error, "No AI provider is configured. Add an Anthropic API key in Settings." unless provider
 
-    holdings = Portfolio.new(family).holdings_data
+    snapshot = Portfolio.new(family)
+    holdings = snapshot.holdings_data
+    investor = snapshot.investor_profile
     raise Error, "There are no stock or ETF holdings to analyze yet." if holdings.empty?
 
     update!(status: :running, model: provider.model, portfolio: holdings)
 
-    reports = Agent.run_all(portfolio: holdings, currency: family.currency, provider: provider)
+    reports = Agent.run_all(portfolio: holdings, currency: family.currency, provider: provider, investor: investor)
     update!(agent_reports: reports)
 
-    result = Strategist.new(portfolio: holdings, agent_reports: reports, provider: provider).recommend
+    result = Strategist.new(portfolio: holdings, agent_reports: reports, provider: provider, investor: investor).recommend
 
     update!(
       status: :completed,

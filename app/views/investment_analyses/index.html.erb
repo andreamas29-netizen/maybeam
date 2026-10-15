@@ -40,6 +40,8 @@
     <% end %>
   </div>
 
+  <%= render "investment_analyses/investor_profile", family: Current.family %>
+
   <% if @analysis %>
     <%= render "investment_analyses/analysis", analysis: @analysis %>
 
@@ -61,6 +63,11 @@
       <%= icon "sparkles", size: "lg", class: "mx-auto" %>
       <p class="text-primary font-medium">No analysis yet</p>
       <p class="text-sm text-secondary">Run an analysis to get short, medium and long term views on each stock and ETF you hold.</p>
+      <p class="text-sm text-secondary">
+        Investing with Trade Republic?
+        <%= link_to "Import your Trade Republic export", new_import_path(type: "TradeRepublicImport"), class: "text-primary underline", data: { turbo_frame: :modal } %>
+        to load your holdings.
+      </p>
     </div>
   <% end %>
 

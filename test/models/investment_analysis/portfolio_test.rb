@@ -17,4 +17,16 @@ class InvestmentAnalysis::PortfolioTest < ActiveSupport::TestCase
   test "is empty for a family without investments" do
     assert_empty InvestmentAnalysis::Portfolio.new(families(:empty)).holdings_data
   end
+
+  test "describes the investor for the agents" do
+    family = families(:dylan_family)
+    family.update!(investor_risk_profile: "balanced", investor_notes: "Saving for a house")
+
+    profile = InvestmentAnalysis::Portfolio.new(family).investor_profile
+
+    assert_equal family.currency, profile["base_currency"]
+    assert_match "Balanced", profile["risk_profile"]
+    assert_equal "Saving for a house", profile["goals_and_notes"]
+    assert profile.key?("uninvested_cash")
+  end
 end

@@ -37,9 +37,9 @@ class InvestmentAnalysis::Agent
 
   class << self
     # Runs one agent per horizon in parallel and returns their reports keyed by horizon
-    def run_all(portfolio:, currency:, provider:)
+    def run_all(portfolio:, currency:, provider:, investor: {})
       futures = HORIZONS.keys.map do |horizon|
-        agent = new(horizon, portfolio: portfolio, currency: currency, provider: provider)
+        agent = new(horizon, portfolio: portfolio, currency: currency, provider: provider, investor: investor)
         Concurrent::Promises.future { [ horizon, agent.research ] }
       end
 
@@ -50,11 +50,12 @@ class InvestmentAnalysis::Agent
     end
   end
 
-  def initialize(horizon, portfolio:, currency:, provider:)
+  def initialize(horizon, portfolio:, currency:, provider:, investor: {})
     @horizon = horizon
     @portfolio = portfolio
     @currency = currency
     @provider = provider
+    @investor = investor
   end
 
   def research
@@ -68,7 +69,7 @@ class InvestmentAnalysis::Agent
   end
 
   private
-    attr_reader :horizon, :portfolio, :currency, :provider
+    attr_reader :horizon, :portfolio, :currency, :provider, :investor
 
     def config
       HORIZONS.fetch(horizon)
@@ -82,6 +83,11 @@ class InvestmentAnalysis::Agent
 
         Today's date is #{Date.current.iso8601}. Use web search to get current prices, news, filings and
         analyst coverage. Do not rely on memory for anything time sensitive, and say when data could not be found.
+        The price in the holdings data is the last price the app knows (see price_date) and can be stale, so
+        look up the current price. Some holdings are identified only by ISIN and name; use them to find the security.
+
+        Tailor your view to the investor's profile when one is given: their risk tolerance, goals and time
+        horizon, and their uninvested cash.
 
         Focus on:
         #{config[:focus]}
@@ -97,7 +103,11 @@ class InvestmentAnalysis::Agent
 
     def prompt
       <<~PROMPT
-        The investor's base currency is #{currency}. Their current holdings, as JSON:
+        The investor's base currency is #{currency}. Their profile, as JSON:
+
+        #{JSON.pretty_generate(investor)}
+
+        Their current holdings, as JSON:
 
         #{JSON.pretty_generate(portfolio)}
       PROMPT
