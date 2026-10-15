@@ -13,6 +13,14 @@ class Family < ApplicationRecord
     [ "YYYY.MM.DD", "%Y.%m.%d" ]
   ].freeze
 
+  # How much risk the investor is willing to take, used to personalize the investment agents
+  INVESTOR_RISK_PROFILES = {
+    "conservative" => "Conservative: protecting capital matters more than growth, and large drops are hard to accept",
+    "balanced" => "Balanced: wants growth but also stability, and can accept moderate drops",
+    "growth" => "Growth: focused on long-term growth, and can sit through large drops",
+    "aggressive" => "Aggressive: seeks maximum returns, and accepts high volatility and concentrated bets"
+  }.freeze
+
   has_many :users, dependent: :destroy
   has_many :accounts, dependent: :destroy
   has_many :invitations, dependent: :destroy
@@ -31,8 +39,10 @@ class Family < ApplicationRecord
   has_many :merchants, dependent: :destroy, class_name: "FamilyMerchant"
 
   has_many :budgets, dependent: :destroy
+  has_many :investment_analyses, dependent: :destroy
   has_many :budget_categories, through: :budgets
 
+  validates :investor_risk_profile, inclusion: { in: INVESTOR_RISK_PROFILES.keys }, allow_blank: true
   validates :locale, inclusion: { in: I18n.available_locales.map(&:to_s) }
   validates :date_format, inclusion: { in: DATE_FORMATS.map(&:last) }
 
@@ -55,6 +65,18 @@ class Family < ApplicationRecord
 
   def auto_detect_transaction_merchants(transaction_ids)
     AutoMerchantDetector.new(self, transaction_ids: transaction_ids).auto_detect
+  end
+
+  def analyze_investments_later(trigger: :manual)
+    # Ignore runs old enough that their job must have died
+    running = investment_analyses.in_progress.where(created_at: 1.hour.ago..).first
+    return running if running
+
+    investment_analyses.create!(trigger: trigger).tap(&:run_later)
+  end
+
+  def latest_investment_analysis
+    investment_analyses.ordered.first
   end
 
   def balance_sheet

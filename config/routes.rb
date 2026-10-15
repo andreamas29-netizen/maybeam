@@ -115,6 +115,9 @@ Rails.application.routes.draw do
   end
 
   resources :holdings, only: %i[index new show destroy]
+  resources :investment_analyses, only: %i[index show create]
+  resource :investment_analysis_schedule, only: :update
+  resource :investor_profile, only: :update
   resources :trades, only: %i[show new create update destroy]
   resources :valuations, only: %i[show new create update destroy] do
     post :confirm_create, on: :collection

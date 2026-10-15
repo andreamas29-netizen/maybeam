@@ -1,0 +1,11 @@
+<% content_for :page_header do %>
+  <div class="space-y-1 mb-6">
+    <%= link_to "← All insights", investment_analyses_path, class: "text-sm text-secondary hover:underline" %>
+    <h1 class="text-xl lg:text-3xl font-medium text-primary">Investment analysis</h1>
+  </div>
+<% end %>
+
+<div class="space-y-4 pb-12">
+  <%= render "investment_analyses/analysis", analysis: @analysis %>
+  <%= render "investment_analyses/disclaimer" %>
+</div>

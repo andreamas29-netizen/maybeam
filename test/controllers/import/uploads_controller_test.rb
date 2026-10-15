@@ -46,4 +46,32 @@ class Import::UploadsControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
     assert_equal "Must be valid CSV with headers and at least one row of data", flash[:alert]
   end
+
+  test "uploads a Trade Republic export and skips configuration" do
+    import = families(:dylan_family).imports.create!(type: "TradeRepublicImport", date_format: "%m-%d-%Y")
+
+    patch import_upload_url(import), params: {
+      import: {
+        csv_file: file_fixture_upload("trade_republic_export.csv"),
+        col_sep: ","
+      }
+    }
+
+    assert_redirected_to import_clean_url(import)
+    assert_equal 8, import.rows.count
+  end
+
+  test "rejects a CSV that is not a Trade Republic export" do
+    import = families(:dylan_family).imports.create!(type: "TradeRepublicImport", date_format: "%m-%d-%Y")
+
+    patch import_upload_url(import), params: {
+      import: {
+        csv_file: file_fixture_upload("imports/valid.csv"),
+        col_sep: ","
+      }
+    }
+
+    assert_response :unprocessable_entity
+    assert_match "Trade Republic transaction export", flash[:alert]
+  end
 end

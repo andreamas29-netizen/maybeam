@@ -18,3 +18,9 @@ run_security_health_checks:
   class: "SecurityHealthCheckJob"
   queue: "scheduled"
   description: "Runs security health checks to detect issues with security data"
+
+run_weekly_investment_analysis:
+  cron: "0 11 * * 1" # 11:00 AM UTC every Monday, before the US market opens
+  class: "ScheduledInvestmentAnalysisJob"
+  queue: "scheduled"
+  description: "Runs the AI investment analysis for families that turned on weekly analysis"

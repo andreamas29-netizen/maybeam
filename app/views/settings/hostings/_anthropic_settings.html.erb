@@ -1,0 +1,26 @@
+<div class="space-y-4">
+  <div>
+    <h2 class="font-medium mb-1">Anthropic Settings</h2>
+    <% if ENV["ANTHROPIC_API_KEY"].present? %>
+      <p class="text-sm text-secondary">You have successfully configured your Anthropic API key through the ANTHROPIC_API_KEY environment variable.</p>
+    <% else %>
+      <p class="text-secondary text-sm mb-4">The investment insights agents use Claude. Input an API key from console.anthropic.com.</p>
+    <% end %>
+  </div>
+
+  <%= styled_form_with model: Setting.new,
+                       url: settings_hosting_path,
+                       method: :patch,
+                       data: {
+                         controller: "auto-submit-form",
+                         "auto-submit-form-trigger-event-value": "blur"
+                       } do |form| %>
+    <%= form.text_field :anthropic_api_key,
+                        label: "API Key",
+                        type: "password",
+                        placeholder: "Enter your API key here",
+                        value: ENV.fetch("ANTHROPIC_API_KEY", Setting.anthropic_api_key),
+                        disabled: ENV["ANTHROPIC_API_KEY"].present?,
+                        data: { "auto-submit-form-target": "auto" } %>
+  <% end %>
+</div>

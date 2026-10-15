@@ -1,0 +1,75 @@
+<% content_for :page_header do %>
+  <div class="space-y-1 mb-6 flex gap-4 justify-between items-center lg:items-start">
+    <div class="space-y-1">
+      <h1 class="text-xl lg:text-3xl font-medium text-primary">Investment insights</h1>
+      <p class="text-sm lg:text-base text-secondary">AI agents study your stocks and ETFs for the short, medium and long term</p>
+    </div>
+
+    <% if InvestmentAnalysis.available? %>
+      <%= render DS::Button.new(
+        text: @analysis&.in_progress? ? "Analysis running" : "Run analysis",
+        icon: "sparkles",
+        href: investment_analyses_path,
+        disabled: @analysis&.in_progress?
+      ) %>
+    <% end %>
+  </div>
+<% end %>
+
+<div class="space-y-4 pb-12">
+  <% unless InvestmentAnalysis.available? %>
+    <%= render DS::Alert.new(
+      message: "To run an analysis, add an Anthropic API key in Settings > Self-Hosting or set the ANTHROPIC_API_KEY environment variable.",
+      variant: :warning
+    ) %>
+  <% end %>
+
+  <div class="bg-container rounded-xl shadow-border-xs p-4 flex items-center justify-between gap-4">
+    <div>
+      <p class="text-sm font-medium text-primary">Weekly analysis</p>
+      <p class="text-sm text-secondary">Run the agents automatically every Monday morning, before the US market opens.</p>
+    </div>
+
+    <%= form_with url: investment_analysis_schedule_path, method: :patch, data: { turbo_frame: "_top", controller: "auto-submit-form" } do %>
+      <%= render DS::Toggle.new(
+        id: "weekly_investment_analysis",
+        name: "weekly",
+        checked: Current.family.weekly_investment_analysis?,
+        data: { auto_submit_form_target: "auto" }
+      ) %>
+    <% end %>
+  </div>
+
+  <%= render "investment_analyses/investor_profile", family: Current.family %>
+
+  <% if @analysis %>
+    <%= render "investment_analyses/analysis", analysis: @analysis %>
+
+    <% if @analyses.size > 1 %>
+      <div class="bg-container rounded-xl shadow-border-xs p-4 space-y-2">
+        <h2 class="text-sm font-medium text-primary">Previous analyses</h2>
+        <ul class="divide-y divide-primary">
+          <% @analyses.drop(1).each do |analysis| %>
+            <li class="py-2 flex items-center justify-between text-sm">
+              <%= link_to format_date(analysis.created_at.to_date, :long), investment_analysis_path(analysis), class: "text-primary hover:underline" %>
+              <span class="text-secondary"><%= analysis.status.humanize %><%= " · weekly" if analysis.triggered_scheduled? %></span>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="bg-container rounded-xl shadow-border-xs p-8 text-center space-y-2">
+      <%= icon "sparkles", size: "lg", class: "mx-auto" %>
+      <p class="text-primary font-medium">No analysis yet</p>
+      <p class="text-sm text-secondary">Run an analysis to get short, medium and long term views on each stock and ETF you hold.</p>
+      <p class="text-sm text-secondary">
+        Investing with Trade Republic?
+        <%= link_to "Import your Trade Republic export", new_import_path(type: "TradeRepublicImport"), class: "text-primary underline", data: { turbo_frame: :modal } %>
+        to load your holdings.
+      </p>
+    </div>
+  <% end %>
+
+  <%= render "investment_analyses/disclaimer" %>
+</div>

@@ -1,25 +1,48 @@
 
-<img width="1190" alt="maybe_hero" src="https://github.com/user-attachments/assets/5ed08763-a9ee-42b2-a436-e05038fcf573" />
+# Beam: personal finance with AI investment insights
 
-# Maybe: The personal finance app for everyone
+Beam is a personal finance app for tracking accounts, transactions, budgets and investments. It adds
+**investment insights**: a team of AI agents that studies your stock and ETF holdings and suggests what to
+consider for the short, medium and long term.
 
-> [!IMPORTANT]
-> This repository is no longer actively maintained. You can read more about this in our [final release](https://github.com/maybe-finance/maybe/releases/tag/v0.6.0).
+> [!NOTE]
+> Beam is based on [Maybe Finance](https://github.com/maybe-finance/maybe) (v0.6.0), released under the
+> [AGPLv3 license](LICENSE). Beam is **not affiliated with or endorsed by** Maybe Finance Inc. "Maybe" is a
+> trademark of Maybe Finance Inc.
 
-## Maybe Hosting
+## Investment insights
 
-Maybe is a fully working personal finance app that can be [self hosted with Docker](docs/hosting/docker.md).
+Open **Insights** in the sidebar and press **Run analysis**, or turn on the weekly analysis.
 
-## Forking and Attribution
+1. Three analyst agents run in parallel, one per horizon: short term (1 to 3 months), medium term
+   (3 to 18 months) and long term (3+ years). Each uses Claude with live web search to read current prices,
+   news, filings and analyst coverage for every holding.
+2. A strategist agent combines their research into one action per holding and horizon (add, hold, trim or
+   sell), with a rationale, a conviction level and the key risks.
 
-This repo is no longer maintained. You’re free to fork it under the AGPLv3. To stay compliant and avoid trademark issues:
+Insights need an Anthropic API key. Set `ANTHROPIC_API_KEY`, or when self hosting enter it under
+Settings > Self-Hosting. Each run makes four Claude requests plus web searches, so it has a cost on your
+Anthropic account.
 
-- Be sure to include the original [AGPLv3 license](https://github.com/maybe-finance/maybe/blob/main/LICENSE) and clearly state in your README that your fork is based on Maybe Finance but is **not affiliated with or endorsed by** Maybe Finance Inc.
-- "Maybe" is a trademark of Maybe Finance Inc. and therefore, use of it is NOT allowed in forked repositories (or the logo)
+Insights are informational and educational. They are not licensed or personalized financial advice.
+
+## Hosting
+
+### Render (one click)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/andreamas29-netizen/maybeam)
+
+The [Render Blueprint](render.yaml) creates the web app, a background worker, a Postgres database and a
+Redis (Key Value) instance, for about $20 a month in total. Render asks for your `ANTHROPIC_API_KEY` during
+the deploy. When it finishes, open the app's URL and create your account.
+
+### Docker
+
+Beam can also be [self hosted with Docker](docs/hosting/docker.md).
 
 ## Local Development Setup
 
-**If you are trying to _self-host_ the Maybe app, stop here. You
+**If you are trying to _self-host_ the app, stop here. You
 should [read this guide to get started](docs/hosting/docker.md).**
 
 The instructions below are for developers to get started with contributing to the app.
